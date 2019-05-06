@@ -56,7 +56,7 @@ class LampService(object):
         if 'client' not in self.db:
             self.db['client'] = ''
         if 'song' not in self.db:
-            self.db['song'] = ''
+            self.db['song'] = "Kanye West is Kanye Best"
         self.write_current_settings_to_hardware()
 
     def _create_and_configure_broker_client(self):

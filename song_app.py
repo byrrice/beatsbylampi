@@ -9,6 +9,9 @@ import pigpio
 import lampi_util
 from paho.mqtt.client import Client
 from lamp_common import *
+import json
+
+MQTT_CLIENT_ID = "lamp_ui"
 
 class SongApp(App):
 
@@ -17,21 +20,22 @@ class SongApp(App):
 
     def on_start(self):
         self._publish_clock = None
-        self.mqtt = Client()
+        self.mqtt = Client(client_id=MQTT_CLIENT_ID)
         self.mqtt.on_connect = self.on_connect
         self.mqtt.connect(MQTT_BROKER_HOST, port = MQTT_BROKER_PORT,
                           keepalive = MQTT_BROKER_KEEP_ALIVE_SECS)
         self.mqtt.loop_start()
-        self._update_song_text("KANYE")
+        self._update_song_text("No Song")
         self.set_up_GPIO_and_IP_popup()
 
     def on_connect(self, client, userdata, flags, rc):
         self.mqtt.subscribe(TOPIC_LAMP_CHANGE_NOTIFICATION)
         self.mqtt.message_callback_add(TOPIC_LAMP_CHANGE_NOTIFICATION,
                                        self.receive_new_lamp_state)
-
+        print("on_connect reached")
     def receive_new_lamp_state(self, client, userdata, message):
         new_state = json.loads(message.payload)
+        print("received state")
         Clock.schedule_once(lambda dt: self._update_ui(new_state), 0.01)
 
     def on_song(self, instance, value):
@@ -45,7 +49,7 @@ class SongApp(App):
         self._updatingUI = True
         try:
             if 'song' in new_state:
-                self._update_song_text("YEEZY")
+                self._update_song_text(new_state['song'])
         finally:
             self._updatingUI = False
 
